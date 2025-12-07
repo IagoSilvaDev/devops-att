@@ -1,0 +1,38 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Garantir que o diretório do projeto existe
+            if [ ! -d "/opt/devops" ]; then
+              sudo mkdir -p /opt/devops
+              sudo chown ubuntu:ubuntu /opt/devops
+              cd /opt/devops
+              git clone https://github.com/${{ github.repository }} .
+            fi
+
+            cd /opt/devops
+            git fetch --all
+            git reset --hard origin/${{ github.ref_name }}
+            # Reiniciar a aplicação
+            if [ -f docker-compose.yml ]; then
+              docker compose down
+              docker compose up -d
+            fi
