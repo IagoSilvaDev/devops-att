@@ -1,95 +1,13 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>ToDo List JSON</title>
-    <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
-        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        input, select, textarea, button { padding: 10px; font-size: 16px; }
-        
-        .card { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: start; }
-        .card-content { display: flex; flex-direction: column; gap: 5px; }
-        .card-desc { color: #555; font-size: 0.9em; font-style: italic; }
-        
-        .alta { border-left: 5px solid red; }
-        .media { border-left: 5px solid orange; }
-        .baixa { border-left: 5px solid green; }
-    </style>
-</head>
-<body>
-    <h1>Minhas Tarefas</h1>
-    
-    <div class="input-group">
-        <input type="text" id="titulo" placeholder="Título da tarefa">
-        <textarea id="descricao" rows="2" placeholder="Descreva os detalhes da atividade..."></textarea>
-        
-        <select id="prioridade">
-            <option value="alta">Prioridade Alta</option>
-            <option value="media">Prioridade Média</option>
-            <option value="baixa">Prioridade Baixa</option>
-        </select>
-        <button onclick="criarTarefa()">Adicionar Tarefa</button>
-    </div>
-
-    <hr>
-    <div id="lista">Carregando...</div>
-
-    <script>
-        // Acessa o backend diretamente pela porta 3001
-        const API_URL = `http://${window.location.hostname}:3001/tarefas`;
-
-        async function carregarTarefas() {
-            const res = await fetch(API_URL);
-            const tarefas = await res.json();
-            const lista = document.getElementById('lista');
-            lista.innerHTML = '';
-
-            tarefas.forEach(t => {
-                const prioridade = t.detalhes.prioridade || 'baixa';
-                // LENDO A DESCRIÇÃO DO JSON (ou string vazia se não existir)
-                const descricao = t.detalhes.descricao || ''; 
-                
-                lista.innerHTML += `
-                    <div class="card ${prioridade}">
-                        <div class="card-content">
-                            <strong>${t.titulo}</strong>
-                            <span class="card-desc">${descricao}</span>
-                            <small>Prioridade: ${prioridade.toUpperCase()}</small>
-                        </div>
-                        <button onclick="deletarTarefa(${t.id})">Concluir</button>
-                    </div>
-                `;
-            });
-        }
-
-        async function criarTarefa() {
-            const titulo = document.getElementById('titulo').value;
-            const prioridade = document.getElementById('prioridade').value;
-            // PEGANDO O VALOR DA DESCRIÇÃO
-            const descricao = document.getElementById('descricao').value;
-
-            if (!titulo) return alert("O título é obrigatório!");
-
-            await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // ENVIANDO A DESCRIÇÃO NO BODY
-                body: JSON.stringify({ titulo, prioridade, descricao })
-            });
-            
-            // Limpa os campos
-            document.getElementById('titulo').value = '';
-            document.getElementById('descricao').value = '';
-            carregarTarefas();
-        }
-
-        async function deletarTarefa(id) {
-            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-            carregarTarefas();
-        }
-
-        carregarTarefas();
-    </script>
-</body>
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>??</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerenciador de Tarefas</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
