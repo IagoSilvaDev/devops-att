@@ -36,7 +36,8 @@
     <div id="lista">Carregando...</div>
 
     <script>
-        const API_URL = 'http://localhost:3000/tarefas';
+        // Pega o host automaticamente (funciona em qualquer ambiente)
+        const API_URL = `${window.location.protocol}//${window.location.hostname}:3001/tarefas`;
 
         async function carregarTarefas() {
             const res = await fetch(API_URL);

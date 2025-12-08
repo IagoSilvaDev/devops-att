@@ -10,7 +10,12 @@ services:
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5432:5432" # Opcional, para acessar via DBeaver/PgAdmin
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d tododb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: ./backend 
@@ -18,22 +23,21 @@ services:
       - "3001:3000"
     environment:
       - DB_HOST=db
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_NAME=tododb
+      - DB_PORT=5432
     depends_on:
-      - db
-    # Reinicia se o banco demorar a subir
+      db:
+        condition: service_healthy
     restart: on-failure 
 
   frontend:
     build: ./frontend
     ports:
       - "8080:80"
-
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
-    ports:
-      - "5050:80"
     depends_on:
-      - db
+      - backend
+
+volumes:
+  grafana_data:
