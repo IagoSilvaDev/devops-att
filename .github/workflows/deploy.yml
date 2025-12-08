@@ -25,11 +25,11 @@ jobs:
             # Se não for um repositório Git, clona
             if [ ! -d ".git" ]; then
               echo "Primeira execução: clonando repositório..."
-              git clone https://github.com/${{ github.repository }} .
+              sudo git clone https://github.com/${{ github.repository }} .
             else
               echo "Atualizando branch existente..."
-              git fetch --all
-              git reset --hard origin/${{ github.ref_name }}
+              sudo git fetch --all
+              sudo git reset --hard origin/${{ github.ref_name }}
             fi
 
             # Reiniciar serviços
