@@ -20,18 +20,19 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
           script: |
-            # Garantir que o diretório do projeto existe
-            if [ ! -d "/opt/devops" ]; then
-              sudo mkdir -p /opt/devops
-              sudo chown ubuntu:ubuntu /opt/devops
-              cd /opt/devops
+            cd /opt/devops-app || mkdir -p /opt/devops-app && cd /opt/devops-app
+
+            # Se não for um repositório Git, clona
+            if [ ! -d ".git" ]; then
+              echo "Primeira execução: clonando repositório..."
               git clone https://github.com/${{ github.repository }} .
+            else
+              echo "Atualizando branch existente..."
+              git fetch --all
+              git reset --hard origin/${{ github.ref_name }}
             fi
 
-            cd /opt/devops
-            git fetch --all
-            git reset --hard origin/${{ github.ref_name }}
-            # Reiniciar a aplicação
+            # Reiniciar serviços
             if [ -f docker-compose.yml ]; then
               docker compose down
               docker compose up -d
