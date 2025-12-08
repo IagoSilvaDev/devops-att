@@ -20,7 +20,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /opt/devops-app || mkdir -p /opt/devops-app && cd /opt/devops-app
+            cd /opt/devops || sudo mkdir -p /opt/devops && cd /opt/devops
 
             # Se não for um repositório Git, clona
             if [ ! -d ".git" ]; then
