@@ -6,6 +6,7 @@ networks:
 
 services:
   db:
+    container_name: app-postgres
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: user
@@ -26,6 +27,7 @@ services:
     restart: unless-stopped
 
   backend:
+    container_name: app-backend
     build:
       context: ./backend
       dockerfile: dockerfile
@@ -53,6 +55,7 @@ services:
       start_period: 10s
 
   frontend:
+    container_name: app-frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -71,10 +74,10 @@ services:
       retries: 3
       start_period: 10s
 
-  # === ZABBIX (com PostgreSQL + Web UI) ===
+  # === ZABBIX ===
   zabbix-postgres:
-    image: postgres:15 
     container_name: zabbix-postgres
+    image: postgres:15
     restart: unless-stopped
     environment:
       POSTGRES_USER: zabbix
@@ -86,8 +89,8 @@ services:
       - app-network
 
   zabbix-server:
-    image: zabbix/zabbix-server-pgsql:alpine-latest
     container_name: zabbix-server
+    image: zabbix/zabbix-server-pgsql:alpine-latest
     restart: unless-stopped
     environment:
       DB_SERVER_HOST: zabbix-postgres
@@ -100,8 +103,8 @@ services:
       - app-network
 
   zabbix-web:
-    image: zabbix/zabbix-web-nginx-pgsql:alpine-latest
     container_name: zabbix-web
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-latest
     restart: unless-stopped
     environment:
       DB_SERVER_HOST: zabbix-postgres
@@ -119,21 +122,28 @@ services:
       - app-network
 
   zabbix-agent:
+    container_name: zabbix-agent
     image: zabbix/zabbix-agent2:alpine-latest
     restart: unless-stopped
     environment:
-      ZBX_HOSTNAME: "zabbix-agent"
+      ZBX_HOSTNAME: "DevOps-host"
       ZBX_SERVER_HOST: zabbix-server
       ZBX_SERVER_PORT: "10051"
       ZBX_SERVER_ACTIVE: zabbix-server
+      ZBX_HOST_METADATA: "docker-agent"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run
       - /var/run/docker.sock:/var/run/docker.sock
+      - /sys:/sys:ro
+      - /proc:/proc:ro
     privileged: true
+    user: root
     networks:
-     - app-network
+      - app-network
+
   grafana:
+    container_name: grafana
     image: grafana/grafana:latest
     ports:
       - "3000:3000"
@@ -142,6 +152,7 @@ services:
       GF_INSTALL_PLUGINS: alexanderzobnin-zabbix-app
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
     networks:
       - app-network
     restart: unless-stopped
