@@ -73,7 +73,7 @@ services:
 
   # === ZABBIX (com PostgreSQL + Web UI) ===
   zabbix-postgres:
-    image: postgres:15
+    image: postgres:15 
     container_name: zabbix-postgres
     restart: unless-stopped
     environment:
