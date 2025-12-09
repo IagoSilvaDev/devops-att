@@ -73,7 +73,9 @@ services:
 
   # === ZABBIX (com PostgreSQL + Web UI) ===
   zabbix-postgres:
-    image: postgres:13
+    image: postgres:15
+    container_name: zabbix-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: zabbix
       POSTGRES_PASSWORD: zabbix
@@ -82,12 +84,11 @@ services:
       - zbx_pg_:/var/lib/postgresql/data
     networks:
       - app-network
-    restart: unless-stopped
 
   zabbix-server:
-    image: zabbix/zabbix-server-pgsql:ubuntu-7.0-latest
-    ports:
-      - "10051:10051"
+    image: zabbix/zabbix-server-pgsql:alpine-latest
+    container_name: zabbix-server
+    restart: unless-stopped
     environment:
       DB_SERVER_HOST: zabbix-postgres
       POSTGRES_USER: zabbix
@@ -95,45 +96,43 @@ services:
       POSTGRES_DB: zabbix
     depends_on:
       - zabbix-postgres
-    volumes:
-      - zbx_export_:/var/lib/zabbix/export
     networks:
       - app-network
-    restart: unless-stopped
 
   zabbix-web:
-    image: zabbix/zabbix-web-nginx-pgsql:ubuntu-7.0-latest
-    ports:
-      - "8080:8080"
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-latest
+    container_name: zabbix-web
+    restart: unless-stopped
     environment:
-      ZBX_SERVER_HOST: zabbix-server
       DB_SERVER_HOST: zabbix-postgres
       POSTGRES_USER: zabbix
       POSTGRES_PASSWORD: zabbix
       POSTGRES_DB: zabbix
+      ZBX_SERVER_HOST: zabbix-server
       PHP_TZ: America/Sao_Paulo
     depends_on:
       - zabbix-server
       - zabbix-postgres
+    ports:
+      - "8080:8080"
     networks:
       - app-network
-    restart: unless-stopped
 
   zabbix-agent:
-    image: zabbix/zabbix-agent:ubuntu-7.0-latest
+    image: zabbix/zabbix-agent2:alpine-latest
     restart: unless-stopped
-    depends_on:
-      - zabbix-server
     environment:
-      ZBX_HOSTNAME: "DevOps-Host"
+      ZBX_HOSTNAME: "zabbix-agent"
       ZBX_SERVER_HOST: zabbix-server
       ZBX_SERVER_PORT: "10051"
+      ZBX_SERVER_ACTIVE: zabbix-server
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run
+      - /var/run/docker.sock:/var/run/docker.sock
     privileged: true
-
-  # === GRAFANA ===
+    networks:
+     - app-network
   grafana:
     image: grafana/grafana:latest
     ports:
