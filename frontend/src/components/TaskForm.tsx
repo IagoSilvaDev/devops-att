@@ -38,7 +38,7 @@ function TaskForm({ onTaskAdded }: TaskFormProps) {
 
   return (
     <form className="task-form" onSubmit={handleSubmit}>
-      <h2>Adicionar Nova Tarefaaaaaaaaaaaaaa</h2>
+      <h2>Adicionar Nova Tarefa</h2>
       
       {error && <div className="form-error">{error}</div>}
 
