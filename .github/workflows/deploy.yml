@@ -34,6 +34,7 @@ jobs:
 
             # Reiniciar serviços
             if [ -f docker-compose.yml ]; then
-              docker compose down
+              docker compose down || true
+              docker compose build --no-cache
               docker compose up -d
             fi
